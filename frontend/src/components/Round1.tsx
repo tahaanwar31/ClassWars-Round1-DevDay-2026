@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { questionBank, Question } from '../data/questions';
+import { Question } from '../data/questions';
 import { Terminal, ShieldAlert, Crosshair, Clock, AlertTriangle, Power, Cpu, Database, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import TacticalBackground from './TacticalBackground';
+import api from '../api/axios';
 
 const TypewriterText = ({ text, onComplete, speed = 45 }: { text: string, onComplete?: () => void, speed?: number }) => {
   const [displayedText, setDisplayedText] = useState('');
@@ -80,6 +81,7 @@ export default function Round1() {
   });
   const [briefingFinished, setBriefingFinished] = useState(false);
   
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [level, setLevel] = useState(1);
   const [points, setPoints] = useState(0);
   const [correctInLevel, setCorrectInLevel] = useState(0);
@@ -95,26 +97,107 @@ export default function Round1() {
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
   const [gameOver, setGameOver] = useState(false);
   const [showQuitModal, setShowQuitModal] = useState(false);
+  const [questionsByLevel, setQuestionsByLevel] = useState<{ [key: number]: Question[] }>({});
+  const [answeredQuestionIds, setAnsweredQuestionIds] = useState<Set<number>>(new Set());
 
-  const pickQuestion = useCallback((targetLevel: number) => {
-    const maxLevel = Math.max(...questionBank.map(q => q.level));
-    const searchLevel = Math.min(targetLevel, maxLevel);
-    
-    const available = questionBank.filter(q => q.level === searchLevel);
-    const randomQ = available[Math.floor(Math.random() * available.length)];
-    
-    setCurrentQuestion(randomQ);
-    setTimeLeft(60);
-    setAnswerInput('');
-    setSelectedOption('');
-    setFeedback(null);
+  // Create or get session when game starts
+  const initializeSession = useCallback(async () => {
+    try {
+      const teamName = localStorage.getItem('teamName');
+      if (!teamName) {
+        window.location.href = '/';
+        return;
+      }
+
+      const response = await api.post('/game/session', {
+        teamName,
+        roundKey: 'round1'
+      });
+
+      const session = response.data;
+      setSessionId(session._id);
+      setLevel(session.currentLevel);
+      setPoints(session.totalPoints);
+      setCorrectInLevel(session.correctInLevel);
+      setConsecutiveWrong(session.consecutiveWrong);
+      setTotalTime(session.timeRemaining);
+      
+      // Mark already answered questions
+      const answeredIds = new Set(session.answeredQuestions.map((q: any) => q.questionId));
+      setAnsweredQuestionIds(answeredIds);
+    } catch (error) {
+      console.error('Failed to create session:', error);
+    }
   }, []);
 
+  // Fetch all questions for a specific level from backend
+  const fetchQuestionsForLevel = useCallback(async (targetLevel: number) => {
+    try {
+      const response = await api.get(`/questions/by-level?level=${targetLevel}&roundKey=round1`);
+      const questions = response.data;
+      
+      if (questions.length > 0) {
+        setQuestionsByLevel(prev => ({ ...prev, [targetLevel]: questions }));
+        return questions;
+      }
+      
+      // If no questions for this level, try to find max available level
+      const allQuestionsResponse = await api.get('/admin/questions');
+      const allQuestions = allQuestionsResponse.data;
+      const round1Questions = allQuestions.filter((q: any) => (q.roundKey || 'round1') === 'round1');
+      const maxLevel = Math.max(...round1Questions.map((q: any) => q.level));
+      
+      if (targetLevel > maxLevel) {
+        return fetchQuestionsForLevel(maxLevel);
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Failed to fetch questions:', error);
+      return [];
+    }
+  }, []);
+
+  const pickQuestion = useCallback(async (targetLevel: number) => {
+    // Check if we already have questions for this level cached
+    let available = questionsByLevel[targetLevel];
+    
+    // If not cached, fetch from backend
+    if (!available || available.length === 0) {
+      available = await fetchQuestionsForLevel(targetLevel);
+    }
+    
+    if (available && available.length > 0) {
+      // Filter out already answered questions in this session
+      const unanswered = available.filter(q => !answeredQuestionIds.has(q.id));
+      
+      // If all questions answered, allow repeating
+      const questionPool = unanswered.length > 0 ? unanswered : available;
+      
+      // Randomly pick one question
+      const randomQ = questionPool[Math.floor(Math.random() * questionPool.length)];
+      
+      setCurrentQuestion(randomQ);
+      setTimeLeft(60);
+      setAnswerInput('');
+      setSelectedOption('');
+      setFeedback(null);
+    } else {
+      console.error('No questions available for level', targetLevel);
+    }
+  }, [questionsByLevel, fetchQuestionsForLevel, answeredQuestionIds]);
+
   useEffect(() => {
-    if (hasStarted) {
+    if (hasStarted && !sessionId) {
+      initializeSession();
+    }
+  }, [hasStarted, sessionId, initializeSession]);
+
+  useEffect(() => {
+    if (hasStarted && sessionId) {
       pickQuestion(level);
     }
-  }, [hasStarted, pickQuestion]);
+  }, [hasStarted, sessionId, level, pickQuestion]);
 
   // Timer effect
   useEffect(() => {
@@ -154,44 +237,59 @@ export default function Round1() {
     return normalize(ans) === normalize(q.correct);
   };
 
-  const handleSubmit = () => {
-    if (!currentQuestion || feedback) return;
+  const handleSubmit = async () => {
+    if (!currentQuestion || feedback || !sessionId) return;
 
     const ans = currentQuestion.type === 'mcq' ? selectedOption : answerInput;
     if (!ans) return;
 
     const isCorrect = checkAnswer(currentQuestion, ans);
 
-    if (isCorrect) {
-      setPoints(p => p + 5);
-      setConsecutiveWrong(0);
+    try {
+      // Submit answer to backend
+      const response = await api.post(`/game/session/${sessionId}/answer`, {
+        questionId: currentQuestion.id,
+        answer: ans,
+        isCorrect
+      });
+
+      const updatedSession = response.data;
       
-      const newCorrect = correctInLevel + 1;
-      if (newCorrect >= level) {
-        const nextLevel = level + 1;
-        setLevel(nextLevel);
-        setCorrectInLevel(0);
-        setFeedback({ message: `FIREWALL BREACHED: LEVEL ${nextLevel} UNLOCKED`, type: 'success' });
-        setTimeout(() => pickQuestion(nextLevel), 2000);
+      // Update local state from server response
+      setPoints(updatedSession.totalPoints);
+      setCorrectInLevel(updatedSession.correctInLevel);
+      setConsecutiveWrong(updatedSession.consecutiveWrong);
+      
+      // Mark this question as answered
+      setAnsweredQuestionIds(prev => new Set([...prev, currentQuestion.id]));
+
+      if (isCorrect) {
+        if (updatedSession.currentLevel > level) {
+          // Level up
+          const nextLevel = updatedSession.currentLevel;
+          setLevel(nextLevel);
+          setFeedback({ message: `FIREWALL BREACHED: LEVEL ${nextLevel} UNLOCKED`, type: 'success' });
+          setTimeout(() => pickQuestion(nextLevel), 2000);
+        } else {
+          setFeedback({ message: 'NODE COMPROMISED: CORRECT', type: 'success' });
+          setTimeout(() => pickQuestion(level), 1500);
+        }
       } else {
-        setCorrectInLevel(newCorrect);
-        setFeedback({ message: 'NODE COMPROMISED: CORRECT', type: 'success' });
-        setTimeout(() => pickQuestion(level), 1500);
+        if (updatedSession.currentLevel < level) {
+          // Level down
+          const nextLevel = updatedSession.currentLevel;
+          setLevel(nextLevel);
+          setFeedback({ message: 'SECURITY TRIGGERED: ACCESS DOWNGRADED', type: 'error' });
+          setTimeout(() => pickQuestion(nextLevel), 2500);
+        } else {
+          setFeedback({ message: `ACCESS DENIED: INCORRECT (${updatedSession.consecutiveWrong}/2 STRIKES)`, type: 'error' });
+          setTimeout(() => pickQuestion(level), 2000);
+        }
       }
-    } else {
-      const newWrong = consecutiveWrong + 1;
-      if (newWrong >= 2) {
-        const nextLevel = Math.max(1, level - 1);
-        setLevel(nextLevel);
-        setConsecutiveWrong(0);
-        setCorrectInLevel(0);
-        setFeedback({ message: 'SECURITY TRIGGERED: ACCESS DOWNGRADED', type: 'error' });
-        setTimeout(() => pickQuestion(nextLevel), 2500);
-      } else {
-        setConsecutiveWrong(newWrong);
-        setFeedback({ message: `ACCESS DENIED: INCORRECT (${newWrong}/2 STRIKES)`, type: 'error' });
-        setTimeout(() => pickQuestion(level), 2000);
-      }
+    } catch (error) {
+      console.error('Failed to submit answer:', error);
+      setFeedback({ message: 'CONNECTION ERROR: RETRY', type: 'error' });
+      setTimeout(() => setFeedback(null), 2000);
     }
   };
 
@@ -275,6 +373,11 @@ export default function Round1() {
   }
 
   if (gameOver) {
+    // End session if not already ended
+    if (sessionId) {
+      api.post(`/game/session/${sessionId}/end`).catch(err => console.error('Failed to end session:', err));
+    }
+
     return (
       <div className="min-h-screen bg-[#020502] text-[#39ff14] font-mono flex items-center justify-center p-4 scanlines crt-flicker relative">
         <TacticalBackground />
@@ -287,17 +390,27 @@ export default function Round1() {
             <p className="flex justify-between"><span>TOTAL INTEL EXTRACTED:</span> <span className="text-white text-glow">{points} PTS</span></p>
             <p className="flex justify-between"><span>TIME ELAPSED:</span> <span className="text-white">{formatTime(3600 - totalTime)}</span></p>
           </div>
-          <button 
-            onClick={() => {
-              try {
-                sessionStorage.removeItem('hasSeenBriefing_v2');
-              } catch (e) {}
-              window.location.reload();
-            }}
-            className="px-8 py-4 bg-black border-2 border-[#39ff14] text-[#39ff14] hover:bg-[#39ff14] hover:text-black transition-all duration-300 uppercase tracking-widest font-bold"
-          >
-            [ RESTART TERMINAL ]
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button 
+              onClick={() => {
+                try {
+                  sessionStorage.removeItem('hasSeenBriefing_v2');
+                } catch (e) {}
+                window.location.href = '/competition/round1';
+              }}
+              className="px-8 py-4 bg-black border-2 border-[#39ff14] text-[#39ff14] hover:bg-[#39ff14] hover:text-black transition-all duration-300 uppercase tracking-widest font-bold"
+            >
+              [ RESTART TERMINAL ]
+            </button>
+            <button 
+              onClick={() => {
+                window.location.href = '/competition';
+              }}
+              className="px-8 py-4 bg-black border-2 border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-black transition-all duration-300 uppercase tracking-widest font-bold"
+            >
+              [ RETURN TO LOBBY ]
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -317,7 +430,9 @@ export default function Round1() {
             <Target className="w-6 h-6 text-[#39ff14] animate-pulse" />
             <div>
               <h1 className="text-xl font-bold tracking-widest text-glow">CLASS WARS: ROUND 1</h1>
-              <p className="text-xs text-[#39ff14]/70 tracking-[0.2em]">DEFENSIVE MEASURES BYPASS</p>
+              <p className="text-xs text-[#39ff14]/70 tracking-[0.2em]">
+                OPERATIVE: {localStorage.getItem('teamName')?.toUpperCase() || 'UNKNOWN'}
+              </p>
             </div>
           </div>
           
@@ -505,7 +620,16 @@ export default function Round1() {
               <p className="text-red-400/90 mb-12 text-xl leading-relaxed">Warning: Disconnecting now will wipe all extracted intel and reset your clearance level.</p>
               <div className="flex flex-col sm:flex-row gap-6 justify-center">
                 <button 
-                  onClick={() => setGameOver(true)}
+                  onClick={async () => {
+                    if (sessionId) {
+                      try {
+                        await api.post(`/game/session/${sessionId}/end`);
+                      } catch (err) {
+                        console.error('Failed to end session:', err);
+                      }
+                    }
+                    setGameOver(true);
+                  }}
                   className="px-8 py-4 bg-black border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-black transition-colors uppercase tracking-widest font-bold text-lg"
                 >
                   [ CONFIRM DISCONNECT ]
