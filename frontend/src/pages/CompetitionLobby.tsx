@@ -412,28 +412,14 @@ export default function CompetitionLobby() {
                   <span className="text-[#39ff14]/60">$</span> cat /etc/architects <span className="text-[#39ff14]/20">--format=classified</span>
                 </div>
 
-                {/* Tier 1 */}
-                <div className="flex items-center justify-center gap-4 flex-wrap py-0.5">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono" style={{color:'rgba(251,191,36,0.7)'}}>◈</span>
-                    <span className="font-black text-xs tracking-[0.15em]" style={{color:'#fbbf24', textShadow:'0 0 8px rgba(251,191,36,0.8)'}}>ZOHAIR SHAMSI</span>
-                    <span className="text-[6px] tracking-[0.2em] font-mono px-1 py-px" style={{color:'rgba(251,191,36,0.5)', border:'1px solid rgba(251,191,36,0.22)'}}>&lt;ARCH&gt;</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono" style={{color:'rgba(251,191,36,0.7)'}}>◈</span>
-                    <span className="font-black text-xs tracking-[0.15em]" style={{color:'#fbbf24', textShadow:'0 0 8px rgba(251,191,36,0.8)'}}>UMER KHAN</span>
-                    <span className="text-[6px] tracking-[0.2em] font-mono px-1 py-px" style={{color:'rgba(251,191,36,0.5)', border:'1px solid rgba(251,191,36,0.22)'}}>&lt;ARCH&gt;</span>
-                  </div>
-                </div>
-                <div className="text-[8px] text-white/10 tracking-widest text-center">─────────────────────</div>
-                {/* Tier 2 */}
+                {/* Lead Dev */}
                 <div className="flex items-center justify-center gap-1.5">
                   <span className="text-[13px] font-mono font-bold" style={{color:'rgba(0,229,255,0.75)'}}>{'>#'}</span>
                   <span className="font-bold text-xs tracking-[0.15em]" style={{color:'#00e5ff', textShadow:'0 0 8px rgba(0,229,255,0.8)'}}>TAHA ANWAR</span>
                   <span className="text-[6px] tracking-[0.2em] font-mono px-1 py-px" style={{color:'rgba(0,229,255,0.4)', border:'1px solid rgba(0,229,255,0.18)'}}>#ROOT</span>
                 </div>
                 <div className="text-[8px] text-white/10 tracking-widest text-center">─────────────────────</div>
-                {/* Tier 3 */}
+                {/* Developers */}
                 <div className="flex items-center justify-center gap-4 flex-wrap py-0.5">
                   <div className="flex items-center gap-1.5">
                     <span className="font-mono text-[#39ff14]/60">▸</span>

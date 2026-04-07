@@ -389,18 +389,6 @@ export default function TeamLogin() {
             </div>
 
             <div className="px-5 py-4 space-y-3">
-              {/* Architects — GOLD */}
-              <div>
-                <div className="text-[8px] tracking-[0.5em] mb-2 text-center" style={{ color: '#fbbf24', textShadow: '0 0 10px rgba(251,191,36,0.4)' }}>━━ ARCHITECTS ━━</div>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-x-8 gap-y-1">
-                  <span className="font-black text-sm tracking-[0.2em]" style={{ color: '#fbbf24', textShadow: '0 0 15px rgba(251,191,36,1), 0 0 35px rgba(251,191,36,0.5), 0 0 60px rgba(251,191,36,0.2)' }}>◈ ZOHAIR SHAMSI</span>
-                  <span className="font-black text-sm tracking-[0.2em]" style={{ color: '#fbbf24', textShadow: '0 0 15px rgba(251,191,36,1), 0 0 35px rgba(251,191,36,0.5), 0 0 60px rgba(251,191,36,0.2)' }}>◈ UMER KHAN</span>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
               {/* Lead Dev — CYAN */}
               <div>
                 <div className="text-[8px] tracking-[0.5em] mb-2 text-center" style={{ color: '#00e5ff', textShadow: '0 0 10px rgba(0,229,255,0.4)' }}>━━ LEAD DEVELOPER ━━</div>
