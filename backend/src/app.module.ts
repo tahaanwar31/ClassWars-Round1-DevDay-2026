@@ -7,8 +7,6 @@ import { QuestionsModule } from './rounds/round1/questions/questions.module';
 import { GameModule } from './rounds/round1/game/game.module';
 import { AdminModule } from './admin/admin.module';
 import { TeamsModule } from './teams/teams.module';
-import { CompilerModule } from './rounds/round2/compiler/compiler.module';
-import { Round2GameModule } from './rounds/round2/game/round2-game.module';
 
 @Module({
   imports: [
@@ -20,8 +18,6 @@ import { Round2GameModule } from './rounds/round2/game/round2-game.module';
     GameModule,
     AdminModule,
     TeamsModule,
-    CompilerModule,
-    Round2GameModule,
   ],
 })
 export class AppModule {}

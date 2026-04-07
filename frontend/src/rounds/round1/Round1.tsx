@@ -1332,28 +1332,14 @@ export default function Round1() {
             <div className="text-[9px] text-[#39ff14]/30 text-center mb-2">
               <span className="text-[#39ff14]/50">$</span> cat /sys/architects
             </div>
-            {/* Tier 1 */}
-            <div className="flex items-center justify-center gap-4 flex-wrap mb-1">
-              <div className="flex items-center gap-1.5">
-                <span className="font-mono" style={{color:'rgba(251,191,36,0.7)'}}>◈</span>
-                <span className="font-black text-[11px] tracking-[0.18em]" style={{color:'#fbbf24', textShadow:'0 0 10px rgba(251,191,36,0.8)'}}>ZOHAIR SHAMSI</span>
-                <span className="text-[6px] font-mono px-1 py-px tracking-[0.2em]" style={{color:'rgba(251,191,36,0.5)', border:'1px solid rgba(251,191,36,0.22)'}}>&lt;ARCH&gt;</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-mono" style={{color:'rgba(251,191,36,0.7)'}}>◈</span>
-                <span className="font-black text-[11px] tracking-[0.18em]" style={{color:'#fbbf24', textShadow:'0 0 10px rgba(251,191,36,0.8)'}}>UMER KHAN</span>
-                <span className="text-[6px] font-mono px-1 py-px tracking-[0.2em]" style={{color:'rgba(251,191,36,0.5)', border:'1px solid rgba(251,191,36,0.22)'}}>&lt;ARCH&gt;</span>
-              </div>
-            </div>
-            <div className="text-[8px] text-white/10 tracking-widest text-center my-0.5">────────────────────</div>
-            {/* Tier 2 */}
+            {/* Lead Dev */}
             <div className="flex items-center justify-center gap-1.5 mb-1">
               <span className="text-[13px] font-mono font-bold" style={{color:'rgba(0,229,255,0.75)'}}>{'>#'}</span>
               <span className="font-bold text-[11px] tracking-[0.15em]" style={{color:'#00e5ff', textShadow:'0 0 8px rgba(0,229,255,0.8)'}}>TAHA ANWAR</span>
               <span className="text-[7px] font-mono border border-[#00e5ff]/20 px-1.5 py-px tracking-[0.2em]" style={{color:'rgba(0,229,255,0.45)'}}>#ROOT</span>
             </div>
             <div className="text-[8px] text-white/10 tracking-widest text-center my-0.5">────────────────────</div>
-            {/* Tier 3 */}
+            {/* Developers */}
             <div className="flex items-center justify-center gap-4 text-[10px]">
               <span className="flex items-center gap-1 text-[#39ff14]/80 tracking-[0.1em]"><span className="font-mono text-[#39ff14]/50">▸</span> RUMESA IQBAL <span className="text-[#39ff14]/40 text-[7px] font-mono border border-[#39ff14]/15 px-1 py-px">::DEV</span></span>
               <span className="text-[#39ff14]/15">│</span>
