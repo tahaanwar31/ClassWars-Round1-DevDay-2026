@@ -381,6 +381,8 @@ export default function CompetitionLobby() {
             onClick={() => {
               localStorage.removeItem('teamName');
               localStorage.removeItem('teamData');
+              localStorage.removeItem('round2_completed');
+              sessionStorage.removeItem('hasSeenBriefing_v2');
               navigate('/');
             }}
             className="px-6 py-2 border border-red-500/40 text-red-500/60 hover:border-red-500 hover:text-red-400 hover:bg-red-500/8 transition-all duration-150 uppercase tracking-[0.25em] font-bold text-[10px] flex items-center gap-2"

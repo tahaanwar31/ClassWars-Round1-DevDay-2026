@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, RotateCcw } from 'lucide-react';
 import TacticalBackground from '../../components/TacticalBackground';
+import { markLevelComplete } from './Round2Lobby';
 import CodeMirror from '@uiw/react-codemirror';
 import { cpp } from '@codemirror/lang-cpp';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -232,7 +233,16 @@ export default function Round2() {
           } else {
             const m = line.match(/^NODE_(\d+)_SECURED$/);
             if (m) {
-              securedNodes.push(parseInt(m[1]) - 1);
+              const nodeIdx = parseInt(m[1]) - 1;
+              securedNodes.push(nodeIdx);
+              // Register checkpoint hit from code output (handles case where tank
+              // starts on a checkpoint and no STEP line is generated for it)
+              if (!hitSet.has(nodeIdx)) {
+                hitSet.add(nodeIdx);
+                const idx = nodeIdx;
+                setCheckpoints(prev => prev.map((cp, j) => j === idx ? { ...cp, hit: true } : cp));
+                setTerminalLines(prev => [...prev, `>> Checkpoint ${idx + 1} crossed`]);
+              }
             } else if (line === 'FINISH_REACHED') {
               finishReached = true;
             }
@@ -291,7 +301,7 @@ export default function Round2() {
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => navigate('/competition')}
+              onClick={() => navigate('/competition/round2')}
               className="inline-flex items-center gap-2 border border-[#39ff14]/30 bg-black/60 px-4 py-2 text-xs font-bold tracking-[0.18em] text-[#39ff14] transition hover:border-[#39ff14] hover:bg-[#39ff14]/10"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -303,6 +313,60 @@ export default function Round2() {
                 {compiling ? 'EXECUTING...' : resultStatus === 'idle' ? 'READY' : resultStatus === 'success' ? 'COMPLETE' : 'FAILED'}
               </span>
             </div>
+          </div>
+        </div>
+
+        {/* BRIEFING */}
+        <div className="border border-[#39ff14]/30 bg-[#020802]/90 px-4 py-3 mb-5">
+          <div className="mb-3 text-[11px] font-bold tracking-[0.2em] text-[#39ff14]">MISSION BRIEFING — LEVEL 1: CHECKPOINT RUN</div>
+
+          <div className="grid gap-x-8 gap-y-3 text-[10px] leading-[1.7] md:grid-cols-2 lg:grid-cols-3">
+
+            {/* OBJECTIVE */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">OBJECTIVE</div>
+              <div className="text-[#6699ff]">Navigate your tank through all 9 checkpoints IN ORDER (1 → 9), then reach Column 9 to finish.</div>
+            </div>
+
+            {/* CHECKPOINTS */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">CHECKPOINTS</div>
+              <div className="text-[#6699ff]">9 checkpoints are randomly placed on a 10x10 grid.</div>
+              <div className="text-[#6699ff]">Hover over a checkpoint to see its (row, col) coordinates.</div>
+              <div className="text-[#6699ff]">You MUST visit them in order — checkpoint 1 first, then 2, and so on.</div>
+            </div>
+
+            {/* CLASS: Tank */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">CLASS: Tank (base class)</div>
+              <div className="text-[#6699ff]">Class Tank has 3 pure virtual methods: move(), attack(), defend().</div>
+              <div className="text-[#6699ff]">You must override all three in your MyTank class.</div>
+            </div>
+
+            {/* CLASS: MyTank */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">CLASS: MyTank (your class)</div>
+              <div className="text-[#6699ff]">Inherit from Tank: class MyTank : public Tank.</div>
+              <div className="text-[#6699ff]">Use int r for row and int c for col to track your tank position.</div>
+              <div className="text-[#6699ff]">path[9][2] array stores checkpoint coordinates: path[i][0] = row, path[i][1] = col.</div>
+            </div>
+
+            {/* MOVEMENT */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">MOVEMENT</div>
+              <div className="text-[#6699ff]">Use r++ (move down), r-- (move up), c++ (move right), c-- (move left).</div>
+              <div className="text-[#6699ff]">After each step, print: cout &lt;&lt; "STEP:" &lt;&lt; r &lt;&lt; "," &lt;&lt; c &lt;&lt; endl;</div>
+              <div className="text-[#6699ff]">This tells the arena where your tank is on the grid.</div>
+            </div>
+
+            {/* CHECKPOINT SECURE */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">SECURING CHECKPOINTS</div>
+              <div className="text-[#6699ff]">When your tank reaches a checkpoint's exact (row, col), print:</div>
+              <div className="text-[#6699ff]">cout &lt;&lt; "NODE_" &lt;&lt; (i+1) &lt;&lt; "_SECURED" &lt;&lt; endl;</div>
+              <div className="text-[#6699ff]">After all 9, move right until column 9 and print FINISH_REACHED.</div>
+            </div>
+
           </div>
         </div>
 
@@ -456,10 +520,13 @@ export default function Round2() {
                   {resultStatus === 'success' && (
                     <button
                       type="button"
-                      onClick={() => navigate('/competition/round2/level2')}
+                      onClick={() => {
+                        markLevelComplete(1);
+                        navigate('/competition/round2');
+                      }}
                       className="mt-3 w-full border border-[#39ff14] bg-[#39ff14] px-4 py-2 text-xs font-black tracking-[0.18em] text-black transition hover:bg-white"
                     >
-                      PROCEED TO LEVEL 2
+                      RETURN TO LEVEL SELECT
                     </button>
                   )}
                 </div>
