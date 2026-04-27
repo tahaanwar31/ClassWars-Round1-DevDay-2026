@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Terminal, Lock, AlertCircle, Cpu } from 'lucide-react';
 import CWEmblem from '../components/CWEmblem';
 import { motion, AnimatePresence } from 'motion/react';
-import axios from 'axios';
+import api from '../api/axios';
 import TacticalBackground from '../components/TacticalBackground';
 
 const BOOT_LINES = [
@@ -45,7 +45,7 @@ export default function TeamLogin() {
     setError('');
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:3002/teams/login', {
+      const response = await api.post('/teams/login', {
         teamName,
         password,
       });
