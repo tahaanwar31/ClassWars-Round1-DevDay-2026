@@ -214,10 +214,10 @@ export class GameService {
   async getLeaderboard(roundKey: string = 'round1', limit: number = 10) {
     const teams = await this.teamModel
       .find({ isActive: true })
-      .select('teamName roundStats')
+      .select('teamName roundStats updatedAt')
       .exec();
 
-    // Sort by max level reached, then total points
+    // Sort by max level reached, then total points, then who reached it first
     const sorted = teams
       .map(team => {
         const stats = team.roundStats?.[roundKey] || {
@@ -226,20 +226,24 @@ export class GameService {
           maxLevelReached: 0,
           sessionsPlayed: 0
         };
-        
+
         return {
           teamName: team.teamName,
           maxLevelReached: stats.maxLevelReached,
           totalPoints: stats.totalPoints,
           bestPoints: stats.bestPoints,
-          sessionsPlayed: stats.sessionsPlayed
+          sessionsPlayed: stats.sessionsPlayed,
+          lastUpdated: (team as any).updatedAt,
         };
       })
       .sort((a, b) => {
         if (b.maxLevelReached !== a.maxLevelReached) {
           return b.maxLevelReached - a.maxLevelReached;
         }
-        return b.totalPoints - a.totalPoints;
+        if (b.totalPoints !== a.totalPoints) {
+          return b.totalPoints - a.totalPoints;
+        }
+        return new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime();
       })
       .slice(0, limit);
 

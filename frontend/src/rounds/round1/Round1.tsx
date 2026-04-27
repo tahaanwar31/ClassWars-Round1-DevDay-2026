@@ -187,32 +187,32 @@ const BRIEFING_LINES: BriefingLine[] = [
   { text: '  "The world is on the brink. We don\'t have the luxury of choosing our battles." — Price', type: 'quote', delay: 120 },
   { text: '', type: 'blank', delay: 80 },
   { text: '══ MISSION BRIEFING: OPERATION CODEX ══', type: 'header', delay: 150 },
-  { text: '  TARGET : MAKAROV\'S PERSONAL MAINFRAME', type: 'rule', delay: 50 },
-  { text: '  STATUS : Ghost & Soap have spliced you into his mobile command terminal.', type: 'rule', delay: 50 },
-  { text: '  THREAT : AI-targeting tank with adaptive armor — intercept before deployment.', type: 'rule', delay: 50 },
+  { text: '  Makarov has placed 10 security hurdles between you and him.', type: 'rule', delay: 50 },
+  { text: '  Every hurdle you cross brings you one step closer — and prepares', type: 'rule', delay: 50 },
+  { text: '  you for the final battle ahead. Answer questions to breach his defenses.', type: 'rule', delay: 50 },
   { text: '', type: 'blank', delay: 80 },
   { text: '══ OPERATION PARAMETERS ══', type: 'header', delay: 150 },
   { text: '  TIME LIMIT    : 60 Minutes total', type: 'rule', delay: 50 },
   { text: '  QUESTION TIME : 60 Seconds per question', type: 'rule', delay: 50 },
-  { text: '  MAX CLEARANCE : Level 10', type: 'rule', delay: 50 },
+  { text: '  TOTAL LEVELS  : 10 hurdles to reach Makarov', type: 'rule', delay: 50 },
   { text: '', type: 'blank', delay: 80 },
   { text: '══ RULES OF ENGAGEMENT ══', type: 'header', delay: 150 },
-  { text: '  LEVEL UP    : Answer [Level #] questions correctly to breach the next firewall.', type: 'rule', delay: 50 },
-  { text: '                e.g. Level 1 = 1 correct  |  Level 2 = 2 correct  |  ...', type: 'rule', delay: 50 },
-  { text: '  DEMOTION    : 2 consecutive wrong OR 2 consecutive missed  →  drop 1 level.', type: 'rule', delay: 50 },
-  { text: '  TIMEOUT     : Missing a question counts as 1 strike (same as a wrong answer).', type: 'rule', delay: 50 },
-  { text: '  WIN         : Highest level reached. Tiebreaker = who reached that level first.', type: 'rule', delay: 50 },
+  { text: '  LEVEL UP    : To clear Level N, you must answer N questions correctly.', type: 'rule', delay: 50 },
+  { text: '                Level 1 = 1 correct  |  Level 2 = 2 correct  |  Level 3 = 3 correct', type: 'rule', delay: 50 },
+  { text: '                ...and so on up to Level 10 = 10 correct answers.', type: 'rule', delay: 50 },
+  { text: '  DEMOTION    : 2 consecutive wrong answers OR 2 consecutive timeouts', type: 'rule', delay: 50 },
+  { text: '                will demote you back 1 level. Stay sharp.', type: 'rule', delay: 50 },
+  { text: '  TIMEOUT     : If the timer runs out, it counts as a wrong answer.', type: 'rule', delay: 50 },
   { text: '', type: 'blank', delay: 80 },
-  { text: '══ INTELLIGENCE BREAKDOWN (ROUND 2 PREP) ══', type: 'header', delay: 150 },
-  { text: '  LVL 1-3  ›  Foundation Protocols  — OOP Theory & Inheritance Chains', type: 'rule', delay: 50 },
-  { text: '  LVL 4    ›  Movement Tactics       — Tank Navigation & Checkpoint Evasion', type: 'rule', delay: 50 },
-  { text: '  LVL 5    ›  Offensive Protocols    — Weapon Systems & Targeting Algorithms', type: 'rule', delay: 50 },
-  { text: '  LVL 6    ›  Defensive Architecture — Shields, Armor & Damage Mitigation', type: 'rule', delay: 50 },
-  { text: '  LVL 7-10 ›  Makarov Engagement     — FINAL BOSS — All techniques combined', type: 'rule', delay: 50 },
+  { text: '══ LEADERBOARD RANKING ══', type: 'header', delay: 150 },
+  { text: '  PRIMARY   : Highest level reached wins.', type: 'rule', delay: 50 },
+  { text: '  TIEBREAK  : If two teams reach the same level, the team that got', type: 'rule', delay: 50 },
+  { text: '              there first is ranked higher.', type: 'rule', delay: 50 },
+  { text: '  SECONDARY : Total points scored across all answers.', type: 'rule', delay: 50 },
   { text: '', type: 'blank', delay: 80 },
   { text: '══ FINAL AUTHORIZATION ══', type: 'header', delay: 150 },
-  { text: '  Every level cleared here directly upgrades your Round 2 tank capabilities.', type: 'rule', delay: 50 },
-  { text: '  Think fast. Answer faster. Extract maximum intel.', type: 'rule', delay: 50 },
+  { text: '  Each hurdle you clear sharpens your skills for the battle to come.', type: 'rule', delay: 50 },
+  { text: '  Think fast. Answer faster. Reach Makarov before anyone else.', type: 'rule', delay: 50 },
   { text: '  "Bravo Six, going dark."', type: 'quote', delay: 100 },
   { text: '', type: 'blank', delay: 80 },
   { text: '[✓] AUTHORIZATION COMPLETE — AWAITING OPERATOR CONFIRMATION', type: 'ok', delay: 0 },
@@ -948,13 +948,23 @@ export default function Round1() {
   const [feedback, setFeedback] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
   const [gameOver, setGameOver] = useState(false);
   const [showQuitModal, setShowQuitModal] = useState(false);
-  const [showRound2Insight, setShowRound2Insight] = useState(false);
-  const [round2InsightLevel, setRound2InsightLevel] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10>(1);
   const [questionsByLevel, setQuestionsByLevel] = useState<{ [key: number]: Question[] }>({});
-  // Track answered questions PER LEVEL (only exclude if answered while at that level)
-  const [answeredByLevel, setAnsweredByLevel] = useState<{ [key: number]: Set<number> }>({});
   // Track the order questions were shown per level so we can replay oldest-first on demotion
   const [shownOrderByLevel, setShownOrderByLevel] = useState<{ [key: number]: number[] }>({});
+
+  // Refs to avoid stale closures in setTimeout callbacks and timer
+  const levelRef = useRef(level);
+  levelRef.current = level;
+  const sessionIdRef = useRef(sessionId);
+  sessionIdRef.current = sessionId;
+  const currentQuestionRef = useRef(currentQuestion);
+  currentQuestionRef.current = currentQuestion;
+  const feedbackRef = useRef(feedback);
+  feedbackRef.current = feedback;
+  const gameOverRef = useRef(gameOver);
+  gameOverRef.current = gameOver;
+  const hasStartedRef = useRef(hasStarted);
+  hasStartedRef.current = hasStarted;
 
   // Create or get session when game starts
   const initializeSession = useCallback(async () => {
@@ -1075,6 +1085,10 @@ export default function Round1() {
     }
   }, [questionsByLevel, fetchQuestionsForLevel, shownOrderByLevel, currentQuestion]);
 
+  // Ref for pickQuestion to avoid stale closures
+  const pickQuestionRef = useRef(pickQuestion);
+  pickQuestionRef.current = pickQuestion;
+
   // Pre-fetch session as soon as component mounts (even during briefing)
   useEffect(() => {
     if (!sessionId) {
@@ -1090,7 +1104,7 @@ export default function Round1() {
     }
   }, [sessionId, level]);
 
-  // Timer effect
+  // Timer effect — pure state updates only, NO side effects inside updaters
   useEffect(() => {
     if (!hasStarted || gameOver || feedback || showQuitModal) return;
 
@@ -1104,10 +1118,7 @@ export default function Round1() {
       });
 
       setTimeLeft(prev => {
-        if (prev <= 1) {
-          handleTimeout();
-          return 60;
-        }
+        if (prev <= 1) return 0; // Signal timeout — handled by separate effect below
         return prev - 1;
       });
     }, 1000);
@@ -1115,12 +1126,28 @@ export default function Round1() {
     return () => clearInterval(timer);
   }, [hasStarted, gameOver, feedback, showQuitModal, level]);
 
-  const handleTimeout = async () => {
+  // Watch for timeLeft hitting 0 and trigger timeout (outside state updater — no side effects in updaters)
+  const timeoutFiredRef = useRef(false);
+  useEffect(() => {
+    if (timeLeft === 0 && hasStarted && !gameOver && !feedback && currentQuestion && !timeoutFiredRef.current) {
+      timeoutFiredRef.current = true;
+      handleTimeoutFn();
+    }
+    if (timeLeft > 0) {
+      timeoutFiredRef.current = false;
+    }
+  }, [timeLeft]);
+
+  const handleTimeoutFn = async () => {
+    const sid = sessionIdRef.current;
+    const cq = currentQuestionRef.current;
+    const lvl = levelRef.current;
+
     // Record timeout as a miss (counts as a strike) on the server so consecutive misses can demote
-    if (!sessionId || !currentQuestion) {
+    if (!sid || !cq) {
       setFeedback({ message: 'CONNECTION TIMEOUT: DEFENSE MEASURE RECONFIGURED', type: 'warning' });
       setTimeout(() => {
-        pickQuestion(level);
+        pickQuestionRef.current(lvl);
       }, 2000);
       return;
     }
@@ -1128,8 +1155,8 @@ export default function Round1() {
     setFeedback({ message: 'CONNECTION TIMEOUT: MISS REGISTERED', type: 'warning' });
 
     try {
-      const response = await api.post(`/game/session/${sessionId}/answer`, {
-        questionId: currentQuestion.id,
+      const response = await api.post(`/game/session/${sid}/answer`, {
+        questionId: cq.id,
         answer: 'TIMEOUT',
         isCorrect: false,
       });
@@ -1140,7 +1167,7 @@ export default function Round1() {
       setCorrectInLevel(updatedSession.correctInLevel);
       setConsecutiveWrong(updatedSession.consecutiveWrong);
 
-      if (updatedSession.currentLevel < level) {
+      if (updatedSession.currentLevel < lvl) {
         // Demoted
         setFeedback({ message: 'SECURITY TRIGGERED: ACCESS DOWNGRADED', type: 'error' });
         setTimeout(() => {
@@ -1149,7 +1176,7 @@ export default function Round1() {
       } else {
         setTimeout(() => {
           setFeedback(null);
-          pickQuestion(level);
+          pickQuestionRef.current(lvl);
         }, 800);
       }
     } catch (error) {
@@ -1157,7 +1184,7 @@ export default function Round1() {
       setFeedback({ message: 'CONNECTION ERROR: TIMEOUT NOT RECORDED', type: 'error' });
       setTimeout(() => {
         setFeedback(null);
-        pickQuestion(level);
+        pickQuestionRef.current(lvl);
       }, 2000);
     }
   };
@@ -1169,23 +1196,28 @@ export default function Round1() {
   };
 
   const handleSubmit = async () => {
-    if (!currentQuestion || feedback || !sessionId) return;
+    const cq = currentQuestionRef.current;
+    const fb = feedbackRef.current;
+    const sid = sessionIdRef.current;
+    const lvl = levelRef.current;
 
-    const ans = currentQuestion.type === 'mcq' ? selectedOption : answerInput;
+    if (!cq || fb || !sid) return;
+
+    const ans = cq.type === 'mcq' ? selectedOption : answerInput;
     if (!ans) return;
 
-    const isCorrect = checkAnswer(currentQuestion, ans);
+    const isCorrect = checkAnswer(cq, ans);
 
     try {
       // Submit answer to backend
-      const response = await api.post(`/game/session/${sessionId}/answer`, {
-        questionId: currentQuestion.id,
+      const response = await api.post(`/game/session/${sid}/answer`, {
+        questionId: cq.id,
         answer: ans,
         isCorrect
       });
 
       const updatedSession = response.data;
-      
+
       // Update local state from server response
       setPoints(updatedSession.totalPoints);
       setCorrectInLevel(updatedSession.correctInLevel);
@@ -1198,18 +1230,9 @@ export default function Round1() {
           setTimeout(() => {
             setGameOver(true);
           }, 2000);
-        } else if (updatedSession.currentLevel > level) {
-          // Level up — show Round 2 insights for the just-completed level
+        } else if (updatedSession.currentLevel > lvl) {
           setFeedback({ message: `FIREWALL BREACHED: LEVEL ${updatedSession.currentLevel} UNLOCKED`, type: 'success' });
-          
-          // Show Round 2 insights/snippets after completing Levels 1-10
-          if (level >= 1 && level <= 10) {
-            setTimeout(() => {
-              setRound2InsightLevel(level as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10);
-              setShowRound2Insight(true);
-            }, 1500);
-          }
-          
+
           setTimeout(() => {
             setLevel(updatedSession.currentLevel);
           }, 1000);
@@ -1217,11 +1240,11 @@ export default function Round1() {
           setFeedback({ message: 'NODE COMPROMISED: CORRECT', type: 'success' });
           setTimeout(() => {
             setFeedback(null);
-            pickQuestion(level);
+            pickQuestionRef.current(lvl);
           }, 800);
         }
       } else {
-        if (updatedSession.currentLevel < level) {
+        if (updatedSession.currentLevel < lvl) {
           // Level down
           setFeedback({ message: 'SECURITY TRIGGERED: ACCESS DOWNGRADED', type: 'error' });
           setTimeout(() => {
@@ -1231,7 +1254,7 @@ export default function Round1() {
           setFeedback({ message: `ACCESS DENIED: INCORRECT (${updatedSession.consecutiveWrong}/2 STRIKES)`, type: 'error' });
           setTimeout(() => {
             setFeedback(null);
-            pickQuestion(level);
+            pickQuestionRef.current(lvl);
           }, 800);
         }
       }
@@ -1624,17 +1647,7 @@ export default function Round1() {
         </div>
       </div>
 
-      {/* Round 2 Insights Modal */}
-      <AnimatePresence>
-        {showRound2Insight && (
-          <Round2InsightModal
-            level={round2InsightLevel}
-            onClose={() => setShowRound2Insight(false)}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Quit Modal */}
+            {/* Quit Modal */}
       <AnimatePresence>
         {showQuitModal && (
           <motion.div

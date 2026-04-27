@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, RotateCcw, Crosshair } from 'lucide-react';
 import TacticalBackground from '../../components/TacticalBackground';
+import { markLevelComplete } from './Round2Lobby';
 import CodeMirror from '@uiw/react-codemirror';
 import { cpp } from '@codemirror/lang-cpp';
 import { oneDark } from '@codemirror/theme-one-dark';
@@ -57,35 +58,41 @@ function buildStarterCode(enemies: Enemy[]): string {
   return `class MyTank : public Tank {
 private:
     int r = 0, c = 0;
+    int currentTarget = 0;
     // {row, col} format
     int targets[8][2] = {${targetsArr}};
 
 public:
     void move() override {
-        for(int i = 0; i < 8; i++) {
-            int tr = targets[i][0];
-            int tc = targets[i][1];
+        int tr = targets[currentTarget][0];
+        int tc = targets[currentTarget][1];
 
-            int lockRow = tr;
-            int lockCol = tc - 2;
+        int lockRow = tr;
+        int lockCol = tc - 2;
 
-            while(r != lockRow || c != lockCol) {
-                if(c < lockCol) c++;
-                else if(c > lockCol) c--;
-                else if(r < lockRow) r++;
-                else if(r > lockRow) r--;
-                cout << "STEP:" << r << "," << c << endl;
-            }
-            fire(tr, tc);
+        while(r != lockRow || c != lockCol) {
+            if(c < lockCol) c++;
+            else if(c > lockCol) c--;
+            else if(r < lockRow) r++;
+            else if(r > lockRow) r--;
+            cout << "STEP:" << r << "," << c << endl;
         }
     }
-    void attack() override {}
+    void attack() override {
+        int tr = targets[currentTarget][0];
+        int tc = targets[currentTarget][1];
+        fire(tr, tc);
+        currentTarget++;
+    }
     void defend() override {}
 };
 
 int main() {
     MyTank t;
-    t.move();
+    for(int i = 0; i < 8; i++) {
+        t.move();
+        t.attack();
+    }
     return 0;
 }`;
 }
@@ -276,12 +283,21 @@ export default function Level2() {
             const parts = line.split(':')[1].split(',').map(Number);
             const trow = parts[0];
             const tcol = parts[1];
+            const colOffset = tcol - curCol;
 
-            if (Math.abs(curCol - tcol) <= 2 && curRow === trow) {
+            if (curRow !== trow) {
+              setTerminalLines(prev => [...prev, `>> FIRE_ERROR: NOT ALIGNED — row ${curRow} vs target row ${trow}. Must be on same row.`]);
+            } else if (colOffset !== 2) {
+              if (colOffset > 2) {
+                setTerminalLines(prev => [...prev, `>> FIRE_ERROR: TARGET OUT OF RANGE — ${colOffset} cells away. Must lock at exactly 2 cells left.`]);
+              } else if (colOffset > 0) {
+                setTerminalLines(prev => [...prev, `>> FIRE_ERROR: TOO CLOSE — ${colOffset} cells away. Must lock at exactly 2 cells left.`]);
+              } else {
+                setTerminalLines(prev => [...prev, `>> FIRE_ERROR: INVALID POSITION — tank is at/past target. Must be 2 cells LEFT of target.`]);
+              }
+            } else {
               shoot(curCol, curRow, tcol, trow);
               await sleep(350);
-            } else {
-              setTerminalLines(prev => [...prev, '>> FIRE_ERROR: TARGET OUT OF RANGE.']);
             }
           }
         }
@@ -293,6 +309,10 @@ export default function Level2() {
           if (won) {
             setTerminalLines(prev => [...prev, '>> SUCCESS: LEVEL 2 CLEARED.']);
             setResultStatus('success');
+          } else {
+            const destroyed = currentEnemies.filter(e => e.hit).length;
+            setTerminalLines(prev => [...prev, `>> PURGE FAILED — ${destroyed}/8 hostiles eliminated. All targets must be destroyed.`]);
+            setResultStatus('failure');
           }
           setCompiling(false);
           return currentEnemies;
@@ -334,7 +354,7 @@ export default function Level2() {
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={() => navigate('/competition')}
+              onClick={() => navigate('/competition/round2')}
               className="inline-flex items-center gap-2 border border-[#ff0033]/30 bg-black/60 px-4 py-2 text-xs font-bold tracking-[0.18em] text-[#ff0033] transition hover:border-[#ff0033] hover:bg-[#ff0033]/10"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -355,7 +375,66 @@ export default function Level2() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-center">
+                {/* BRIEFING */}
+        <div className="border border-[#39ff14]/30 bg-[#020802]/90 px-4 py-3">
+          <div className="mb-3 text-[11px] font-bold tracking-[0.2em] text-[#39ff14]">MISSION BRIEFING — LEVEL 2: COMBAT PURGE</div>
+
+          <div className="grid gap-x-8 gap-y-3 text-[10px] leading-[1.7] md:grid-cols-2 lg:grid-cols-3">
+
+            {/* OBJECTIVE */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">OBJECTIVE</div>
+              <div className="text-[#6699ff]">Destroy all 8 enemy tanks on the 10x10 grid.</div>
+              <div className="text-[#6699ff]">Hover over an enemy tank to see its (row, col) coordinates.</div>
+            </div>
+
+            {/* CLASS: Tank */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">CLASS: Tank (provided base class — hidden from your view)</div>
+              <div className="text-[#6699ff]">class Tank has 3 pure virtual methods: move(), attack(), defend().</div>
+              <div className="text-[#6699ff]">You cannot use Tank directly — it has no implementation.</div>
+              <div className="text-[#6699ff]">You MUST create MyTank that inherits from Tank and override all 3 methods.</div>
+            </div>
+
+            {/* CLASS: MyTank */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">CLASS: MyTank (your class)</div>
+              <div className="text-[#6699ff]">Inherit: class MyTank : public Tank.</div>
+              <div className="text-[#6699ff]">Use int r (row) and int c (col) to track your tank position on the grid.</div>
+              <div className="text-[#6699ff]">targets[8][2] array stores enemy positions: targets[i][0] = row, targets[i][1] = col.</div>
+              <div className="text-[#6699ff]">Use int currentTarget to track which enemy you are hunting.</div>
+            </div>
+
+            {/* MOVEMENT */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">MOVEMENT (move method)</div>
+              <div className="text-[#6699ff]">Use r++ (down), r-- (up), c++ (right), c-- (left) to move one cell at a time.</div>
+              <div className="text-[#6699ff]">After each step, print: cout &lt;&lt; "STEP:" &lt;&lt; r &lt;&lt; "," &lt;&lt; c &lt;&lt; endl;</div>
+              <div className="text-[#6699ff]">Move to the lock position: same row as target, but 2 columns to the LEFT.</div>
+            </div>
+
+            {/* FIRING */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">FIRING (attack method)</div>
+              <div className="text-[#6699ff]">fire(targetRow, targetCol) is a BUILT-IN function — it handles shooting for you.</div>
+              <div className="text-[#6699ff]">You must be exactly 2 cells LEFT of the target on the SAME row before calling fire().</div>
+              <div className="text-[#6699ff]">So your lock column = target column - 2, and your row = target row.</div>
+              <div className="text-[#6699ff]">After firing, increment currentTarget++ to move to the next enemy.</div>
+            </div>
+
+            {/* GAME LOOP */}
+            <div>
+              <div className="mb-1 text-[9px] font-bold tracking-[0.15em] text-[#39ff14]">GAME LOOP</div>
+              <div className="text-[#6699ff]">In main(), loop 8 times: call move() to reach lock position, then attack() to fire.</div>
+              <div className="text-[#6699ff]">defend() can be left empty — not used in this level.</div>
+              <div className="text-[#6699ff]">Enemy positions are randomized each session. Read them from targets[][] array.</div>
+            </div>
+
+          </div>
+        </div>
+
+        {/* Editor + Arena Row */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-5">
 
           {/* Code Editor Panel */}
           <section className="flex-1 border border-[#ff0033]/60 bg-black/90 shadow-[0_0_20px_rgba(255,0,51,0.3),inset_0_0_30px_rgba(255,0,51,0.03)]">
@@ -715,8 +794,11 @@ export default function Level2() {
               </div>
 
               <div className="mt-2 border border-[#ff0033]/15 bg-black/70 px-3 py-2 text-[10px] leading-5 text-[#ff0033]/50">
-                <div>OBJECTIVE: Navigate to firing range (2 cells from target, same row) and destroy all 8 hostiles.</div>
-                <div>NOTE: Targets are randomized each session. Use pre-generated code or write your own.</div>
+                <div className="mb-1 text-[9px] font-bold tracking-[0.2em] text-[#ff0033]/70">QUICK REFERENCE</div>
+                <div><span className="text-white/70">fire(row, col)</span> — built-in, fires at target from your current position</div>
+                <div><span className="text-white/70">STEP:row,col</span> — move tank one cell (print inside move() while loop)</div>
+                <div>Lock position = target col - 2, same row. Must be at lock before firing.</div>
+                <div>Targets are randomized each session. 8 kills to clear.</div>
               </div>
 
               {resultStatus !== 'idle' && (
@@ -731,6 +813,18 @@ export default function Level2() {
                   {resultStatus === 'success'
                     ? 'HOSTILES ELIMINATED // LEVEL 2 COMPLETE'
                     : 'PURGE FAILED // RETRY REQUIRED'}
+                  {resultStatus === 'success' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        markLevelComplete(2);
+                        navigate('/competition/round2');
+                      }}
+                      className="mt-3 w-full border border-[#39ff14] bg-[#39ff14] px-4 py-2 text-xs font-black tracking-[0.18em] text-black transition hover:bg-white"
+                    >
+                      RETURN TO LEVEL SELECT
+                    </button>
+                  )}
                 </div>
               )}
             </div>

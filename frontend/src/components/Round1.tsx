@@ -309,23 +309,31 @@ export default function Round1() {
 > TARGET: VLADIMIR MAKAROV'S PERSONAL MAINFRAME
 
 > SITUATION REPORT:
-> Makarov is on the run, but Ghost and Soap have successfully spliced you into his mobile command terminal. 
-> He is currently mobilizing a heavy armor division and will be arriving in a modified battle tank.
-> You must extract as much intel as possible from his system to cripple his defenses before the confrontation.
+> Makarov has placed 10 security hurdles between you and him.
+> Every hurdle you cross brings you one step closer — and prepares
+> you for the final battle ahead. Answer questions to breach his defenses.
 
-> PARAMETERS:
-  * TIME LIMIT: 1 Hour (60 Minutes)
-  * OBJECTIVE: Extract Intel Points to unlock Round 2.
-  * MAX CLEARANCE: Level 10
+> OPERATION PARAMETERS:
+  * TIME LIMIT    : 60 Minutes total
+  * QUESTION TIME : 60 Seconds per question
+  * TOTAL LEVELS  : 10 hurdles to reach Makarov
 
 > RULES OF ENGAGEMENT:
-  * LEVEL UP: Answer [Current Level] questions correctly to bypass firewalls.
-    (e.g., Level 1 needs 1 correct, Level 2 needs 2 correct...)
-  * DEMOTION: 2 consecutive wrong answers triggers security, dropping you 1 level.
-  * TIMEOUT: Missing a question yields 0 points (No strike).
-  * SCORING: +5 Intel Points per successful extraction.
+  * LEVEL UP    : To clear Level N, you must answer N questions correctly.
+                  Level 1 = 1 correct | Level 2 = 2 correct | Level 3 = 3 correct
+                  ...and so on up to Level 10 = 10 correct answers.
+  * DEMOTION    : 2 consecutive wrong answers OR 2 consecutive timeouts
+                  will demote you back 1 level. Stay sharp.
+  * TIMEOUT     : If the timer runs out, it counts as a wrong answer.
 
-> Clear this round to secure the coordinates. In Round 2, you face Makarov's tank head-on.
+> LEADERBOARD RANKING:
+  * PRIMARY   : Highest level reached wins.
+  * TIEBREAK  : If two teams reach the same level, the team that got
+                there first is ranked higher.
+  * SECONDARY : Total points scored across all answers.
+
+> Each hurdle you clear sharpens your skills for the battle to come.
+> Think fast. Answer faster. Reach Makarov before anyone else.
 > "Bravo Six, going dark."`;
 
   // Briefing Screen
