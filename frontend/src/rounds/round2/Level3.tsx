@@ -27,6 +27,10 @@ const CLIENT_ID = import.meta.env.VITE_JDOODLE_CLIENT_ID as string;
 const CLIENT_SECRET = import.meta.env.VITE_JDOODLE_CLIENT_SECRET as string;
 const CELL = 40;
 
+const COMPILE_URL = import.meta.env.DEV
+  ? `https://corsproxy.io/?https://api.jdoodle.com/v1/execute`
+  : '/api/compile';
+
 // Boss patrols a SQUARE perimeter from (6,2) to (9,5), 1 cell per turn (12 cells total)
 // Shield rules: Row 2 (facing RIGHT) = SHIELDED. Moving UP/DOWN = NO shield. Row 5 (facing LEFT) = FIRES!
 const BOSS_PATH: [number, number][] = [
@@ -260,10 +264,13 @@ export default function Level3() {
     let pHp = PLAYER_MAX_HP;
 
     try {
-      const res = await fetch('https://corsproxy.io/?https://api.jdoodle.com/v1/execute', {
+      const res = await fetch(COMPILE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ clientId: CLIENT_ID, clientSecret: CLIENT_SECRET, script: HIDDEN_HEADER + code, language: 'cpp17', versionIndex: '0' }),
+        body: JSON.stringify(import.meta.env.DEV
+          ? { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET, script: HIDDEN_HEADER + code, language: 'cpp17', versionIndex: '0' }
+          : { script: HIDDEN_HEADER + code }
+        ),
       });
       const data = await res.json();
 

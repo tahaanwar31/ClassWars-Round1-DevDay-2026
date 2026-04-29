@@ -27,6 +27,11 @@ const CLIENT_ID = import.meta.env.VITE_JDOODLE_CLIENT_ID as string;
 const CLIENT_SECRET = import.meta.env.VITE_JDOODLE_CLIENT_SECRET as string;
 const CELL = 40;
 
+// Use backend compile endpoint in production, JDoodle directly in dev
+const COMPILE_URL = import.meta.env.DEV
+  ? `https://corsproxy.io/?https://api.jdoodle.com/v1/execute`
+  : '/api/compile';
+
 interface Checkpoint {
   x: number;
   y: number;
@@ -160,16 +165,13 @@ export default function Round2() {
     const hitSet = new Set<number>();
 
     try {
-      const res = await fetch('https://corsproxy.io/?https://api.jdoodle.com/v1/execute', {
+      const res = await fetch(COMPILE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          clientId: CLIENT_ID,
-          clientSecret: CLIENT_SECRET,
-          script: code,
-          language: 'cpp17',
-          versionIndex: '0',
-        }),
+        body: JSON.stringify(import.meta.env.DEV
+          ? { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET, script: code, language: 'cpp17', versionIndex: '0' }
+          : { script: code }
+        ),
       });
       const data = await res.json();
 
