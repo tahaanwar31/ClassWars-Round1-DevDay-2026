@@ -25,6 +25,34 @@ export default defineConfig(({mode}) => {
           target: 'http://localhost:3002',
           changeOrigin: true,
         },
+        '/auth': {
+          target: 'http://localhost:3002',
+          changeOrigin: true,
+        },
+        '/admin': {
+          target: 'http://localhost:3002',
+          changeOrigin: true,
+        },
+        '/game': {
+          target: 'http://localhost:3002',
+          changeOrigin: true,
+        },
+        '/teams': {
+          target: 'http://localhost:3002',
+          changeOrigin: true,
+        },
+        '/compile': {
+          target: 'http://localhost:3002',
+          changeOrigin: true,
+        },
+        '/round2': {
+          target: 'http://localhost:3002',
+          changeOrigin: true,
+        },
+        '/competition': {
+          target: 'http://localhost:3002',
+          changeOrigin: true,
+        },
       },
     },
   };
