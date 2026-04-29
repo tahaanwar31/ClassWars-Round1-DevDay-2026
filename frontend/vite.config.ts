@@ -53,6 +53,10 @@ export default defineConfig(({mode}) => {
           target: 'http://localhost:3002',
           changeOrigin: true,
         },
+        '/questions': {
+          target: 'http://localhost:3002',
+          changeOrigin: true,
+        },
       },
     },
   };
