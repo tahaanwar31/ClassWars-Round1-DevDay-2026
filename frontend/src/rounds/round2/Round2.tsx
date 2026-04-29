@@ -210,8 +210,18 @@ export default function Round2() {
 
           if (line.startsWith('STEP:')) {
             const parts = line.split(':')[1].split(',').map(Number);
-            const row = parts[0];
-            const col = parts[1];
+            const rawRow = parts[0];
+            const rawCol = parts[1];
+            const row = Math.max(0, Math.min(9, rawRow));
+            const col = Math.max(0, Math.min(9, rawCol));
+
+            if (rawRow !== row || rawCol !== col) {
+              setTerminalLines(prev => [...prev, `>> BOUNDS ERROR: Tank cannot leave the arena (tried R${rawRow} C${rawCol})`]);
+              setResultStatus('failure');
+              setCompiling(false);
+              return;
+            }
+
             setTankPos({ x: col, y: row });
 
             // Check if this position hits a checkpoint
