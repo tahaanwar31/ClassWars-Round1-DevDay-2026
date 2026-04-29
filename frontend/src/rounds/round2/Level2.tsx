@@ -274,11 +274,19 @@ export default function Level2() {
 
           if (line.startsWith('STEP:')) {
             const parts = line.split(':')[1].split(',').map(Number);
-            const row = parts[0];
-            const col = parts[1];
-            curRow = row;
-            curCol = col;
-            setTankPos({ x: col, y: row });
+            const rawRow = parts[0];
+            const rawCol = parts[1];
+
+            if (rawRow < 0 || rawRow > 9 || rawCol < 0 || rawCol > 9) {
+              setTerminalLines(prev => [...prev, `>> BOUNDS ERROR: Tank cannot leave the arena (tried R${rawRow} C${rawCol})`]);
+              setResultStatus('failure');
+              setCompiling(false);
+              return;
+            }
+
+            curRow = rawRow;
+            curCol = rawCol;
+            setTankPos({ x: rawCol, y: rawRow });
             await sleep(120);
           } else if (line.startsWith('FIRE:')) {
             const parts = line.split(':')[1].split(',').map(Number);

@@ -325,8 +325,16 @@ export default function Level3() {
 
             // Move player tank
             const parts = line.split(':')[1].split(',').map(Number);
-            curTankX = Math.max(0, Math.min(9, parts[0]));
-            curTankY = Math.max(0, Math.min(9, parts[1]));
+            const rawX = parts[0];
+            const rawY = parts[1];
+
+            if (rawX < 0 || rawX > 9 || rawY < 0 || rawY > 9) {
+              setTerminalLines(prev => [...prev, `>> BOUNDS ERROR: Tank cannot leave the arena (tried C${rawX} R${rawY})`]);
+              setResultStatus('failure'); setCompiling(false); return;
+            }
+
+            curTankX = rawX;
+            curTankY = rawY;
             setTankPos({ x: curTankX, y: curTankY });
             await sleep(200);
 
