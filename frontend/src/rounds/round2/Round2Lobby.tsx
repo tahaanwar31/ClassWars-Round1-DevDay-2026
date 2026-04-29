@@ -62,6 +62,16 @@ function markLevelComplete(levelId: number) {
   const completed = getCompletedLevels();
   completed.add(levelId);
   localStorage.setItem('round2_completed', JSON.stringify([...completed]));
+
+  // Report to backend for leaderboard scoring
+  const teamName = localStorage.getItem('teamName');
+  if (teamName) {
+    fetch('/round2/level-complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ teamName, level: levelId }),
+    }).catch(() => {});
+  }
 }
 
 export { markLevelComplete };

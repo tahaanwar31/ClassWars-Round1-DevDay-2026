@@ -10,6 +10,7 @@ import { GameModule } from './rounds/round1/game/game.module';
 import { AdminModule } from './admin/admin.module';
 import { TeamsModule } from './teams/teams.module';
 import { CompileModule } from './compile/compile.module';
+import { Round2Module } from './rounds/round2/round2.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CompileModule } from './compile/compile.module';
     AdminModule,
     TeamsModule,
     CompileModule,
+    Round2Module,
   ],
 })
 export class AppModule {}
