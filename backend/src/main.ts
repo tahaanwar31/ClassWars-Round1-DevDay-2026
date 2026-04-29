@@ -11,7 +11,17 @@ async function bootstrap() {
       : true,
     credentials: true,
   });
-  
+
+  // Prevent browser from caching index.html so new deploys don't break
+  app.use((req: any, res: any, next: any) => {
+    if (req.url === '/' || req.url.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+    next();
+  });
+
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     transform: true,
