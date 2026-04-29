@@ -59,34 +59,57 @@ function makeEnemies(): Enemy[] {
 
 function buildStarterCode(enemies: Enemy[]): string {
   const targetsArr = enemies.map(e => `{${e.y}, ${e.x}}`).join(', ');
-  return `class MyTank : public Tank {
+  return `#include <iostream>
+using namespace std;
+
+// === BASE CLASS (provided) ===
+class Tank {
+public:
+    virtual void move() = 0;
+    virtual void attack() = 0;
+    virtual void defend() = 0;
+
+    // Call this to fire at an enemy at (targetRow, targetCol)
+    void fire(int targetRow, int targetCol) {
+        cout << "FIRE:" << targetRow << "," << targetCol << endl;
+    }
+};
+
+// === YOUR CLASS ===
+// Destroy all 8 targets by moving to a lock position and firing.
+class MyTank : public Tank {
 private:
-    int r = 0, c = 0;
-    int currentTarget = 0;
-    // {row, col} format
+    int r = 0, c = 0;          // current position
+    int currentTarget = 0;      // which target we're going after
+
+    // 8 enemy targets {row, col} - destroy ALL of them
     int targets[8][2] = {${targetsArr}};
 
 public:
+    // TODO: Override move() to reach the firing position.
+    //
+    // FIRING RULE: You must be exactly 2 cells to the LEFT of the target.
+    //   lock position = (targetRow, targetCol - 2)
+    //
+    // HOW TO MOVE:
+    //   - Move one cell at a time toward the lock position
+    //   - Print EACH step:  cout << "STEP:" << r << "," << c << endl;
+    //   - Move row: if r < target, r++; if r > target, r--
+    //   - Move col: if c < target, c++; if c > target, c--
+    //
     void move() override {
-        int tr = targets[currentTarget][0];
-        int tc = targets[currentTarget][1];
+        // Write your logic here
 
-        int lockRow = tr;
-        int lockCol = tc - 2;
-
-        while(r != lockRow || c != lockCol) {
-            if(c < lockCol) c++;
-            else if(c > lockCol) c--;
-            else if(r < lockRow) r++;
-            else if(r > lockRow) r--;
-            cout << "STEP:" << r << "," << c << endl;
-        }
     }
+
+    // TODO: Override attack() to fire at the current target.
+    //
+    // Call fire(targetRow, targetCol) to shoot.
+    // Then advance currentTarget to the next enemy.
+    //
     void attack() override {
-        int tr = targets[currentTarget][0];
-        int tc = targets[currentTarget][1];
-        fire(tr, tc);
-        currentTarget++;
+        // Write your logic here
+
     }
     void defend() override {}
 };

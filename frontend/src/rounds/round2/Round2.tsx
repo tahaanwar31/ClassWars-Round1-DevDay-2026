@@ -49,6 +49,9 @@ function buildStarterCode(cps: Checkpoint[]): string {
   return `#include <iostream>
 using namespace std;
 
+// === BASE CLASS (provided) ===
+// Tank is an abstract class with pure virtual functions.
+// You MUST override move(), attack(), and defend() in MyTank.
 class Tank {
 public:
     virtual void move() = 0;
@@ -56,35 +59,38 @@ public:
     virtual void defend() = 0;
 };
 
+// === YOUR CLASS ===
+// Inherit from Tank and override move() to navigate through checkpoints.
 class MyTank : public Tank {
 private:
-    int r = 0;  // row
-    int c = 0;  // col
-    // COORDINATES {row, col} AUTO-GENERATED:
+    int r = 0;  // current row position
+    int c = 0;  // current column position
+
+    // 9 checkpoints to visit IN ORDER {row, col}
+    // Row = vertical (0=top, 9=bottom), Col = horizontal (0=left, 9=right)
     int path[9][2] = {${pathArr}};
 
 public:
+    // TODO: Override move() to visit all 9 checkpoints in order.
+    //
+    // HOW TO MOVE:
+    //   - Update r and c one step at a time toward the target
+    //   - Print EACH step:  cout << "STEP:" << r << "," << c << endl;
+    //   - After reaching a checkpoint, print:  cout << "NODE_X_SECURED" << endl;
+    //     (where X is the checkpoint number 1-9)
+    //
+    // HOW NAVIGATION WORKS:
+    //   - path[0] is checkpoint 1, path[8] is checkpoint 9
+    //   - path[i][0] = target row, path[i][1] = target col
+    //   - Move row: if r < target row, r++; if r > target row, r--
+    //   - Move col: if c < target col, c++; if c > target col, c--
+    //
+    // FINAL OBJECTIVE:
+    //   - After all 9 checkpoints, move to column 9 (finish zone)
+    //   - Print: cout << "FINISH_REACHED" << endl;
     void move() override {
-        for(int i = 0; i < 9; i++) {
-            int tr = path[i][0];
-            int tc = path[i][1];
+        // Write your logic here
 
-            while(r != tr || c != tc) {
-                if(c < tc) c++;
-                else if(c > tc) c--;
-                else if(r < tr) r++;
-                else if(r > tr) r--;
-                cout << "STEP:" << r << "," << c << endl;
-            }
-            cout << "NODE_" << i+1 << "_SECURED" << endl;
-        }
-
-        // Final objective: Reach Column 9 (Finish Zone)
-        while(c < 9) {
-            c++;
-            cout << "STEP:" << r << "," << c << endl;
-        }
-        cout << "FINISH_REACHED" << endl;
     }
     void attack() override {}
     void defend() override {}
