@@ -138,15 +138,13 @@ export default function Round2Lobby() {
 
   const handleEnterLevel = (level: LevelInfo) => {
     if (contestEnded) return;
-    if (level.id > 1 && !completed.has(level.id - 1)) return;
     if (completed.has(level.id)) return;
     navigate(level.path);
   };
 
   const isAccessible = (level: LevelInfo): boolean => {
     if (completed.has(level.id)) return false;
-    if (level.id === 1) return true;
-    return completed.has(level.id - 1);
+    return true;
   };
 
   const getStatusLabel = (level: LevelInfo): string => {
@@ -318,9 +316,38 @@ export default function Round2Lobby() {
           })}
         </div>
 
+        {/* All Levels Completed Banner */}
+        {completed.size === 3 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mt-8 border-2 border-[#39ff14]/60 bg-[#001a00]/90 p-8 text-center relative overflow-hidden"
+            style={{ boxShadow: '0 0 60px rgba(57,255,20,0.2)' }}
+          >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#39ff14] to-transparent" />
+            <div className="text-3xl md:text-4xl font-black tracking-[0.2em] text-[#39ff14] mb-3"
+              style={{ textShadow: '0 0 20px rgba(57,255,20,0.5)' }}>
+              MAKAROV NEUTRALIZED
+            </div>
+            <div className="text-[10px] tracking-[0.4em] text-[#39ff14]/50 mb-4">ALL LEVELS CLEARED // OPERATION COMPLETE</div>
+            <div className="text-sm text-white/40 leading-relaxed max-w-md mx-auto">
+              General Makarov has been defeated. Your OOP skills proved decisive on the battlefield.
+              Report to the lobby for final debriefing.
+            </div>
+            <div className="mt-5">
+              <button
+                onClick={() => navigate('/competition')}
+                className="px-6 py-2.5 border border-[#39ff14]/50 text-[#39ff14] text-xs font-bold tracking-[0.2em] hover:bg-[#39ff14] hover:text-black transition-all"
+              >
+                RETURN TO LOBBY
+              </button>
+            </div>
+          </motion.div>
+        )}
+
         {/* Bottom info */}
         <div className="mt-8 border border-[#ff6600]/15 bg-black/70 px-4 py-3 text-[10px] leading-5 text-white/25">
-          <div>Complete levels in order. Each level unlocks the next. Progress is saved for this session.</div>
+          <div>All levels are open — complete them in any order. Cleared levels become locked.</div>
           <div className="mt-1">OOP Concepts: Abstraction, Polymorphism, Aggregation, Composition, Memory Management.</div>
         </div>
       </div>

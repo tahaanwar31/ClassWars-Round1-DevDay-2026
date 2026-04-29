@@ -51,14 +51,15 @@ function buildStarterCode(cps: Checkpoint[]): string {
  *
  * PROVIDED: class Tank with pure virtual methods move(), attack(), defend()
  *
- * YOUR TASK: Inherit from Tank into MyTank, override all three methods.
- *
- * TIP: Hover over each checkpoint on the grid to see its (row, col).
+ * HOW IT WORKS:
+ *   path[9][2] stores checkpoint coordinates — path[i][0] = row, path[i][1] = col
+ *   Visit each checkpoint in order: path[0] first, then path[1], ..., path[8]
+ *   After visiting all 9, move your tank right until column 9
  *
  * MOVEMENT:  r++ = down,  r-- = up,  c++ = right,  c-- = left
- * OUTPUT:    cout << "STEP:" << r << "," << c << endl;
- * CHECKPOINT: cout << "NODE_" << (i+1) << "_SECURED" << endl;
- * FINISH:    cout << "FINISH_REACHED" << endl;
+ * OUTPUT:    cout << "STEP:" << r << "," << c << endl;   (after each move)
+ * CHECKPOINT: cout << "NODE_" << (i+1) << "_SECURED" << endl;  (when reached)
+ * FINISH:    cout << "FINISH_REACHED" << endl;            (when at column 9)
  */
 
 #include <iostream>
@@ -74,10 +75,11 @@ public:
 class MyTank : public Tank {
 private:
     int r = 0, c = 0;
+    int path[9][2] = {${pathArr}};
 
 public:
     void move() override {
-        // TODO: Visit each checkpoint in order, then reach column 9
+        // TODO: Loop through path[], move to each checkpoint, then reach column 9
     }
     void attack() override {}
     void defend() override {}

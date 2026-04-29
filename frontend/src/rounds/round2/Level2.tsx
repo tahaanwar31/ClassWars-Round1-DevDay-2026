@@ -65,8 +65,11 @@ function buildStarterCode(enemies: Enemy[]): string {
  * HOW fire() WORKS:
  *   fire(targetRow, targetCol) shoots at the target.
  *   You must be on the SAME ROW, exactly 2 cells LEFT of the target.
+ *   Example: target at (3,7) -> move to row 3, col 5, then fire(3,7)
  *
- * TIP: Hover over each target on the grid to see its (row, col).
+ * HOW IT WORKS:
+ *   targets[8][2] stores enemy positions — targets[i][0] = row, targets[i][1] = col
+ *   For each target: move to firing position (same row, 2 cols left), then call fire()
  *
  * MOVEMENT:  r++ = down,  r-- = up,  c++ = right,  c-- = left
  * OUTPUT:    cout << "STEP:" << r << "," << c << endl;
@@ -82,6 +85,7 @@ public:
 class MyTank : public Tank {
 private:
     int r = 0, c = 0;
+    int targets[8][2] = {${targetsArr}};
 
 public:
     void move() override {
