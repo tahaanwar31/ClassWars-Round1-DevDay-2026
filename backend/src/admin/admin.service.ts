@@ -161,20 +161,27 @@ export class AdminService {
   }
 
   async getLeaderboard(roundKey: string = 'round1') {
-    const [teams, activeSessions] = await Promise.all([
+    const [teams, allSessions] = await Promise.all([
       this.teamModel
         .find({ isActive: true })
         .select('teamName roundStats updatedAt')
         .exec(),
       this.gameSessionModel
-        .find({ roundKey, status: 'active' })
-        .select('teamName totalPoints maxLevelReached updatedAt')
+        .find({ roundKey })
+        .select('teamName totalPoints maxLevelReached status updatedAt')
+        .sort({ maxLevelReached: -1 })
         .exec(),
     ]);
 
-    const activeMap = new Map(activeSessions.map(s => [s.teamName, s]));
+    // Best session per team (highest maxLevelReached wins, first seen due to sort)
+    const sessionMap = new Map<string, any>();
+    for (const s of allSessions) {
+      if (!sessionMap.has(s.teamName)) {
+        sessionMap.set(s.teamName, s);
+      }
+    }
 
-    // Merge finalized team stats with active session data
+    // Merge finalized team stats with session data
     const sorted = teams
       .map(team => {
         const stats = team.roundStats?.[roundKey] || {
@@ -183,16 +190,19 @@ export class AdminService {
           maxLevelReached: 0,
           sessionsPlayed: 0
         };
-        const active = activeMap.get(team.teamName);
+        const best = sessionMap.get(team.teamName);
+        const isActive = best?.status === 'active';
+        // Only add active session points to avoid double-counting completed sessions
+        const sessionPoints = isActive ? (best?.totalPoints || 0) : 0;
 
         return {
           teamName: team.teamName,
-          maxLevelReached: Math.max(stats.maxLevelReached, active?.maxLevelReached || 0),
-          totalPoints: stats.totalPoints + (active?.totalPoints || 0),
-          bestPoints: Math.max(stats.bestPoints, active?.totalPoints || 0),
+          maxLevelReached: Math.max(stats.maxLevelReached, best?.maxLevelReached || 0),
+          totalPoints: stats.totalPoints + sessionPoints,
+          bestPoints: Math.max(stats.bestPoints, best?.totalPoints || 0),
           sessionsPlayed: stats.sessionsPlayed,
-          lastUpdated: (active as any)?.updatedAt?.toISOString() || (team as any).updatedAt?.toISOString() || '',
-          isActive: !!active,
+          lastUpdated: (best as any)?.updatedAt?.toISOString() || (team as any).updatedAt?.toISOString() || '',
+          isActive,
         };
       })
       .sort((a, b) => {
