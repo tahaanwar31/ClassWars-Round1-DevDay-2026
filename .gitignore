@@ -16,3 +16,17 @@ package-lock.json
 yarn.lock
 .turbo/
 coverage/
+
+# Markdown files (except root README.md)
+CLAUDE.md
+ROUND2_LEVEL1_FIX_SUMMARY.md
+ROUND2_SOLUTION.md
+TANK_CHECKPOINT_FIX.md
+backend/README.md
+frontend/README.md
+Round2_Level1_Snippet.txt
+*.txt
+
+# Env examples
+.env.example
+backend/.env.example
