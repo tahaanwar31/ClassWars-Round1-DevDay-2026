@@ -7,7 +7,6 @@
 **Developed for Developers Day 2026 — ACM NUCES Chapter**
 **FAST NUCES Karachi | April 30, 2026**
 
-[![Live Demo](https://img.shields.io/badge/LIVE-CLASSWARS-00C853?style=for-the-badge&logo=heroku&logoColor=white)](https://classwars-45c006aaf281.herokuapp.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](#)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](#)
 [![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](#)
@@ -20,8 +19,6 @@
 ## At a Glance
 
 Class Wars is a **two-round competitive programming and strategy platform** built for a live university coding competition. Teams compete through a multi-level trivia round covering OOP, data structures, and algorithms, followed by a unique **Tank Warfare** coding challenge where players write C++ code to navigate, fight, and defeat a boss — all compiled server-side in real time. The platform features a full admin dashboard, combined leaderboards, time-based round access, and server-side C++ compilation via the OneCompiler API — all designed and deployed within a tight competition timeline.
-
-> **Live Deployment:** [classwars-45c006aaf281.herokuapp.com](https://classwars-45c006aaf281.herokuapp.com/)
 
 ---
 
@@ -77,7 +74,7 @@ Class Wars is a **two-round competitive programming and strategy platform** buil
 | **Database** | MongoDB + Mongoose | Document storage for sessions, teams, questions |
 | **Auth** | Passport.js + JWT | Team and admin authentication with protected routes |
 | **Code Execution** | OneCompiler API (RapidAPI) | Server-side C++ compilation and sandboxed execution |
-| **Hosting** | Heroku | Cloud deployment with MongoDB Atlas |
+| **Hosting** | Heroku / Render | Cloud deployment with MongoDB Atlas |
 
 ---
 
@@ -212,6 +209,6 @@ Built for **Developers Day 2026**, organized by the **ACM NUCES Student Chapter*
 
 <div align="center">
 
-**[View Live Deployment](https://classwars-45c006aaf281.herokuapp.com/)**
+**Built with passion for Developers Day 2026 — ACM NUCES**
 
 </div>
